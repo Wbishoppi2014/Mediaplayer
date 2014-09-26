@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>Fancy media player in Javascript</title>
+
+        <link rel="stylesheet" href="public/style.css">
+
+        <script src="//code.jquery.com/jquery-1.11.0.min.js"></script>
+        <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/sha1.js"></script> <!-- for SHA1 -->
+        <script src="public/mediaplayer.js"></script>
+
+    </head>
+
+    <body>
+        <div id="loginScreen">
+            <fieldset>
+                <legend>Login</legend>
+                <p>
+                Username: <input type="text" id="username" length="10">
+                Password: <input type="password" id="password" length="10">
+                <input id="btnLogin" type="submit" value="Login">
+                </p>
+            </fieldset>
+        </div>
+
+        <div id="playList">
+           <p>This is the initial page content. <br />
+           The actual content will be loaded in <span id="initInterval"></span> seconds.</p>
+        </div>
+        <div id="playerView" style="visibility:hidden;">
+            <audio id="player"></audio>
+            <button id="btnPlay">Play</button>
+            <button id="btnPause">Pause</button>
+            <button id="btnStop">Stop</button>
+            <br />
+            <button id="btnVolDown">Vol--</button>
+            <button id="btnVolUp">Vol++</button>
+        </div>
+        <script>
+
+            var hash = CryptoJS.SHA1(document.getElementById('password').value);
+            console.log("hash", hash.toString());
+
+            window.onload = function() {
+                // Create mediaplayer object
+                var jqxhr = $.get( "api/", function(data) {
+                                        // TODO: show initial playlist
+                var playlist = data.playlist;
+
+                    for(var song in playlist){
+                    console.log("Adding song:", playlist[song].nimi + " by " + playlist[song].artisti);
+                    }
+                                    
+                    myPlayer = new Mediaplayer(playlist);
+
+                });
+
+                /* Login submuit function */
+                $("#btnLogin").click(function(){
+                    var username = document.getElementById('username').value;
+                    var password = CryptoJS.SHA1(document.getElementById('password').value).toString();
+                    $.post("api/login",
+                            {username: username,
+                            password: password},
+                            function(data,status, jqXHR){
+                                // TODO: show personal playlist after successful login
+                                window.alert("login: "+data.login);
+
+                                var login  = data.login;
+                                playlist = data.playlist;
+
+                                if(login == 'ok') {
+                                    console.log("login ok")
+                                }
+                                // Use JSON.stringify(data) if you need to convert JS object to a string
+                                console.log("Data: " + JSON.stringify(data) + "\nStatus: " + status);
+                                
+                                for(var song in playlist) {
+                                    console.log("Adding song:", playlist[song].nimi + " by " + playlist[song].artisti);
+                                }
+                                myPlayer = new Mediaplayer(playlist);
+
+                            }, "json");
+                    });
+                };
+        </script>
+    </body>
+</html>
